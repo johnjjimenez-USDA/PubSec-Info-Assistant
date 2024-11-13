@@ -65,7 +65,7 @@ export const Answer = ({
                             styles.answerContainer} ${isSelected && styles.selected}`} verticalAlign="space-between">
             <Stack.Item>
                 <Stack horizontal horizontalAlign="space-between">
-                    <AnswerIcon approach={answer.approach} />
+                    {/* <AnswerIcon approach={answer.approach} /> */}
                     <div>
                         {answer.approach != Approaches.GPTDirect && 
                             <IconButton
