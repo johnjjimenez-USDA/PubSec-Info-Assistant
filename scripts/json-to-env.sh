@@ -86,6 +86,14 @@ jq -r  '
             "path": "AZURE_COSMOSDB_LOG_CONTAINER_NAME",
             "env_var": "COSMOSDB_LOG_CONTAINER_NAME"
         },
+         {
+            "path": "AZURE_COSMOSDB_METADATA_DATABASE_NAME",
+            "env_var": "COSMOSDB_METADATA_DATABASE_NAME"
+        },
+        {
+            "path": "AZURE_COSMOSDB_METADATA_CONTAINER_NAME",
+            "env_var": "COSMOSDB_METADATA_CONTAINER_NAME"
+        },
         {
             "path": "AZURE_OPENAI_RESOURCE_GROUP",
             "env_var": "AZURE_OPENAI_RESOURCE_GROUP"

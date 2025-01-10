@@ -8,4 +8,8 @@ ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
 COPY requirements.txt /
 RUN pip install -r /requirements.txt
 
+RUN python -m nltk.downloader averaged_perceptron_tagger_eng
+RUN python -m nltk.downloader punkt_tab
+
+
 COPY . /home/site/wwwroot

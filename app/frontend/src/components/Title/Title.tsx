@@ -28,5 +28,5 @@ export const Title = () => {
         fetchApplicationTitle();
     }, []);
 
-    return (<>{Title?.APPLICATION_TITLE}</>);
+    return ( <div dangerouslySetInnerHTML={{ __html: Title?.APPLICATION_TITLE|| 'Chat'}}></div>);
 };

@@ -27,6 +27,8 @@ import { InfoContent } from "../../components/InfoContent/InfoContent";
 import { FolderPicker } from "../../components/FolderPicker";
 import { TagPickerInline } from "../../components/TagPicker";
 import React from "react";
+// import { AuthorPickerInline } from "../../components/AuthorPicker/AuthorPicker";
+import { YearPickerInline } from "../../components/YearPicker/YearPicker";
 
 const Chat = () => {
     const [isConfigPanelOpen, setIsConfigPanelOpen] = useState(false);
@@ -65,6 +67,8 @@ const Chat = () => {
     const [activeAnalysisPanelTab, setActiveAnalysisPanelTab] = useState<AnalysisPanelTabs | undefined>(undefined);
     const [selectedFolders, setSelectedFolders] = useState<string[]>([]);
     const [selectedTags, setSelectedTags] = useState<ITag[]>([]);
+    const [selectedAuthors, setSelectedAuthors] = useState<ITag[]>([]);
+    const [selectedYears, setSelectedYears] = useState<ITag[]>([]);
 
     const [selectedAnswer, setSelectedAnswer] = useState<number>(0);
     const [answers, setAnswers] = useState<[user: string, response: ChatResponse][]>([]);
@@ -114,7 +118,9 @@ const Chat = () => {
                     responseLength: responseLength,
                     responseTemp: responseTemp,
                     selectedFolders: selectedFolders.includes("selectAll") ? "All" : selectedFolders.length == 0 ? "All" : selectedFolders.join(","),
-                    selectedTags: selectedTags.map(tag => tag.name).join(",")
+                    selectedTags: selectedTags.map(tag => tag.name).join(","),
+                    selectedAuthors: selectedAuthors.map(tag => tag.name).join(";"),
+                    selectedYears: selectedYears.map(tag => tag.name).join(",")
                 },
                 citation_lookup: approach == Approaches.CompareWebWithWork ? web_citation_lookup : approach == Approaches.CompareWorkWithWeb ? work_citation_lookup : {},
                 thought_chain: thought_chain
@@ -314,6 +320,14 @@ const Chat = () => {
         setSelectedTags(selectedTags)
     }
 
+    const onSelectedAuthorsChange = (selectedAuthors: ITag[]) => {
+        setSelectedAuthors(selectedAuthors)
+    }
+
+    const onSelectedYearsChange = (selectedYears: ITag[]) => {
+        setSelectedYears(selectedYears)
+    }
+
     useEffect(() => {
         // Hide Scrollbar for this page
         document.body.classList.add('chat-overflow-hidden-body');
@@ -353,16 +367,16 @@ const Chat = () => {
                             {activeChatMode == ChatMode.WorkOnly ? 
                                 <div>
                                     <div className={styles.chatEmptyStateHeader}> 
-                                        <BuildingMultipleFilled fontSize={"100px"} primaryFill={"rgba(27, 74, 239, 1)"} aria-hidden="true" aria-label="Query ARS research information logo" />
+                                        <BuildingMultipleFilled fontSize={"100px"} primaryFill={"rgba(27, 74, 239, 1)"} aria-hidden="true" aria-label="Chat with your Work Data logo" />
                                         </div>
-                                    <h1 className={styles.chatEmptyStateTitle}>Query ARS research information</h1>
+                                    <h1 className={styles.chatEmptyStateTitle}>Chat with your work data</h1>
                                 </div>
                             : activeChatMode == ChatMode.WorkPlusWeb ?
                                 <div>
                                     <div className={styles.chatEmptyStateHeader}> 
-                                        <BuildingMultipleFilled fontSize={"80px"} primaryFill={"rgba(27, 74, 239, 1)"} aria-hidden="true" aria-label="Query ARS research information and Web Data logo" /><AddFilled fontSize={"50px"} primaryFill={"rgba(0, 0, 0, 0.7)"} aria-hidden="true" aria-label=""/><GlobeFilled fontSize={"80px"} primaryFill={"rgba(24, 141, 69, 1)"} aria-hidden="true" aria-label="" />
+                                        <BuildingMultipleFilled fontSize={"80px"} primaryFill={"rgba(27, 74, 239, 1)"} aria-hidden="true" aria-label="Chat with your Work and Web Data logo" /><AddFilled fontSize={"50px"} primaryFill={"rgba(0, 0, 0, 0.7)"} aria-hidden="true" aria-label=""/><GlobeFilled fontSize={"80px"} primaryFill={"rgba(24, 141, 69, 1)"} aria-hidden="true" aria-label="" />
                                     </div>
-                                    <h1 className={styles.chatEmptyStateTitle}>Query ARS research information and web data</h1>
+                                    <h1 className={styles.chatEmptyStateTitle}>Chat with your work and web data</h1>
                                 </div>
                             : //else Ungrounded
                                 <div>
@@ -509,6 +523,9 @@ const Chat = () => {
                             <Separator className={styles.chatSettingsSeparator}>Filter Search Results by</Separator>
                             <FolderPicker allowFolderCreation={false} onSelectedKeyChange={onSelectedKeyChanged} preSelectedKeys={selectedFolders} />
                             <TagPickerInline allowNewTags={false} onSelectedTagsChange={onSelectedTagsChange} preSelectedTags={selectedTags} />
+                            {/* <AuthorPickerInline allowNewAuthors={false} onSelectedAuthorsChange={onSelectedAuthorsChange} preSelectedAuthors={selectedAuthors} /> */}
+                            <YearPickerInline allowNewYears={false} onSelectedYearsChange={onSelectedYearsChange} preSelectedYears={selectedYears} />
+                            
                         </div>
                     }
                 </Panel>

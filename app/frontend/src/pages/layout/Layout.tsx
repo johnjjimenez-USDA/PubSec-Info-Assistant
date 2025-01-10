@@ -2,8 +2,7 @@
 // Licensed under the MIT license.
 
 import { Outlet, NavLink, Link } from "react-router-dom";
-// import openai from "../../assets/openai.svg";
-import usda from "../../assets/usda-logo.svg";
+import openai from "../../assets/logo.jpeg";
 import { WarningBanner } from "../../components/WarningBanner/WarningBanner";
 import styles from "./Layout.module.css";
 import { Title } from "../../components/Title/Title";
@@ -33,9 +32,8 @@ export const Layout = () => {
                 <WarningBanner />
                 <div className={styles.headerContainer}>
                     <div className={styles.headerTitleContainer}>
-                        {/* <img src={openai} alt="Azure OpenAI" className={styles.headerLogo} /> */}
-                        <img src={usda} alt="USDA" className={styles.headerLogo} />
-                        <h3 className={styles.headerTitle}><Title /></h3>
+                        <img src={openai} alt="Azure OpenAI" className={styles.headerLogo} />
+                        <div className={styles.headerTitle}><Title /></div>
                     </div>
                     <nav>
                         <ul className={styles.headerNavList}>

@@ -160,6 +160,8 @@ resource "azurerm_linux_function_app" "function_app" {
     COSMOSDB_URL                                = var.CosmosDBEndpointURL
     COSMOSDB_LOG_DATABASE_NAME                  = var.CosmosDBLogDatabaseName
     COSMOSDB_LOG_CONTAINER_NAME                 = var.CosmosDBLogContainerName
+    COSMOSDB_METADATA_DATABASE_NAME             = var.CosmosDBMetadataDatabaseName
+    COSMOSDB_METADATA_CONTAINER_NAME            = var.CosmosDBMetadataContainerName
     PDF_SUBMIT_QUEUE                            = var.pdfSubmitQueue
     PDF_POLLING_QUEUE                           = var.pdfPollingQueue
     NON_PDF_SUBMIT_QUEUE                        = var.nonPdfSubmitQueue

@@ -76,6 +76,14 @@ jq -r  '
             "path": "AZURE_COSMOSDB_LOG_CONTAINER_NAME",
             "env_var": "COSMOSDB_LOG_CONTAINER_NAME"
         },
+         {
+            "path": "AZURE_COSMOSDB_METADATA_DATABASE_NAME",
+            "env_var": "COSMOSDB_METADATA_DATABASE_NAME"
+        },
+        {
+            "path": "AZURE_COSMOSDB_METADATA_CONTAINER_NAME",
+            "env_var": "COSMOSDB_METADATA_CONTAINER_NAME"
+        },
         {
             "path": "AZURE_SUBSCRIPTION_ID",
             "env_var": "AZURE_SUBSCRIPTION_ID"

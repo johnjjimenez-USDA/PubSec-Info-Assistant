@@ -19,6 +19,7 @@ from data_model import (EmbeddingResponse, ModelInfo, ModelListResponse,
                         StatusResponse)
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import RedirectResponse
+from shared_code.cosmos_document import CosmosDocument
 from model_handling import load_models
 import openai
 from openai import AzureOpenAI
@@ -43,6 +44,8 @@ ENV = {
     "COSMOSDB_URL": None,
     "COSMOSDB_LOG_DATABASE_NAME": None,
     "COSMOSDB_LOG_CONTAINER_NAME": None,
+    "COSMOSDB_METADATA_DATABASE_NAME": None,
+    "COSMOSDB_METADATA_CONTAINER_NAME": None,
     "MAX_EMBEDDING_REQUEUE_COUNT": 5,
     "EMBEDDING_REQUEUE_BACKOFF": 60,
     "AZURE_OPENAI_SERVICE": None,
@@ -137,6 +140,7 @@ utilities_helper = UtilitiesHelper(
 )
 
 statusLog = StatusLog(ENV["COSMOSDB_URL"], azure_credential, ENV["COSMOSDB_LOG_DATABASE_NAME"], ENV["COSMOSDB_LOG_CONTAINER_NAME"])
+cosmos_metadata = CosmosDocument(ENV["COSMOSDB_URL"], azure_credential, ENV["COSMOSDB_METADATA_DATABASE_NAME"], ENV["COSMOSDB_METADATA_CONTAINER_NAME"])
 # === API Setup ===
 
 start_time = datetime.now()
@@ -313,6 +317,22 @@ def get_tags(blob_path):
         tags_list = []
     return tags_list
 
+def get_metdata(blob_path):
+     # Remove the container prefix
+    path_parts = blob_path.split('/')
+    blob_path = '/'.join(path_parts[1:])
+
+    # blob_service_client = BlobServiceClient(ENV["AZURE_BLOB_STORAGE_ENDPOINT"],
+    #                                         credential=azure_credential)
+    # blob_client = blob_service_client.get_blob_client(
+    #     container=ENV["AZURE_BLOB_STORAGE_UPLOAD_CONTAINER"],
+    #     blob=blob_path)
+
+    # blob_properties = blob_client.get_blob_properties()
+    # metadata = {key:value for key, value in blob_properties.metadata.items() if key!="tags"}
+     
+    metadata= cosmos_metadata.get_document(blob_path)
+    return metadata
 
 def poll_queue() -> None:
     """Polls the queue for messages and embeds them"""
@@ -357,8 +377,11 @@ def poll_queue() -> None:
                                     
             # get tags to apply to the chunk
             tag_list = get_tags(blob_path)
+           
             log.debug("Successfully pulled tags for %s. %d tags found.", blob_path, len(tag_list))
-
+            metadata = get_metdata(blob_path)
+            log.debug("Successfully pulled metadata for %s.", json.dumps(metadata))
+            
             # Iterate over the chunks in the container
             chunk_list = container_client.list_blobs(name_starts_with=chunk_folder_path)
             chunks = list(chunk_list)
@@ -407,6 +430,9 @@ def poll_queue() -> None:
                 index_chunk['file_uri'] = chunk_dict["file_uri"]
                 index_chunk['folder'] = file_directory[:-1]
                 index_chunk['tags'] = tag_list
+                index_chunk['citation']= metadata["citation"] if "citation" in metadata else None
+                index_chunk['authors']= metadata["authors"].split(";") if "authors" in metadata else []
+                index_chunk['year']= metadata["year"] if "year" in metadata else None
                 index_chunk['chunk_file'] = chunk.name
                 index_chunk['file_class'] = chunk_dict["file_class"]
                 index_chunk['title'] = chunk_dict["title"]

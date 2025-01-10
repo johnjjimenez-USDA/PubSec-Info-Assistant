@@ -8,13 +8,15 @@ import { ShieldCheckmark20Regular } from '@fluentui/react-icons';
 import styles from "./Answer.module.css";
 
 import { Approaches, ChatResponse, getCitationFilePath, ChatMode } from "../../api";
-import { parseAnswerToHtml } from "./AnswerParser";
+import { groupByMultipleKeys, parseAnswerToHtml, WorkCitation } from "./AnswerParser";
 import { AnswerIcon } from "./AnswerIcon";
 import { RAIPanel } from "../RAIPanel";
 import CharacterStreamer from "../CharacterStreamer/CharacterStreamer";
 import ReactMarkdown from "react-markdown";
 import rehypeSanitize from "rehype-sanitize";
 import rehypeRaw from "rehype-raw";
+import { Badge } from "react-bootstrap";
+import { renderToStaticMarkup } from "react-dom/server";
 
 interface Props {
     answer: ChatResponse;
@@ -57,17 +59,50 @@ export const Answer = ({
 }: Props) => {
     const parsedAnswer = useMemo(() => parseAnswerToHtml(answer.answer, answer.approach, answer.work_citation_lookup, answer.web_citation_lookup, answer.thought_chain, onCitationClicked), [answer]);
 
+    const RenderWorkCitations = ({ citations }: { citations: WorkCitation[] }) => {
+        const delimiter = "|#|";
+        const groups = groupByMultipleKeys(citations, ['content', 'label'], delimiter)
+
+        return <ol className={styles.citationWorkList}>
+            {
+                Object.keys(groups).map((x, i) => {
+                    const groupKeyParts = x.split(delimiter)
+                    return (
+                        <li>
+                            <ReactMarkdown components={{
+                                p: ({ children }) => <span>{children}</span>,
+                            }}
+                                rehypePlugins={[rehypeRaw]}>{`${groupKeyParts[0]} ${renderToStaticMarkup(<sup><Badge bg="secondary">{groupKeyParts[1].replace(/[^a-zA-Z0-9]/g, ' ').toUpperCase()}</Badge></sup>)}`}</ReactMarkdown>
+                            {
+                                groups[x].map((y, j) => {
+                                    return (
+                                        <a key={y.index} className={styles.citationWork}
+                                            title={y.shortName} onClick={() => onCitationClicked(getCitationFilePath(y.shortName), (parsedAnswer.work_sourceFiles as any)[y.shortName], y.pageNumber as any)}>
+                                            <sup> {y.index}</sup>
+                                        </a>
+                                    )
+                                })
+                            }
+                        </li>
+                    );
+                })
+            }
+
+        </ol>
+    }
+
+
     return (
-        <Stack className={`${answer.approach == Approaches.ReadRetrieveRead ? styles.answerContainerWork : 
-                            answer.approach == Approaches.ChatWebRetrieveRead ? styles.answerContainerWeb :
-                            answer.approach == Approaches.CompareWorkWithWeb || answer.approach == Approaches.CompareWebWithWork ? styles.answerContainerCompare :
-                            answer.approach == Approaches.GPTDirect ? styles.answerContainerUngrounded :
-                            styles.answerContainer} ${isSelected && styles.selected}`} verticalAlign="space-between">
+        <Stack className={`${answer.approach == Approaches.ReadRetrieveRead ? styles.answerContainerWork :
+            answer.approach == Approaches.ChatWebRetrieveRead ? styles.answerContainerWeb :
+                answer.approach == Approaches.CompareWorkWithWeb || answer.approach == Approaches.CompareWebWithWork ? styles.answerContainerCompare :
+                    answer.approach == Approaches.GPTDirect ? styles.answerContainerUngrounded :
+                        styles.answerContainer} ${isSelected && styles.selected}`} verticalAlign="space-between">
             <Stack.Item>
                 <Stack horizontal horizontalAlign="space-between">
-                    {/* <AnswerIcon approach={answer.approach} /> */}
+                    <AnswerIcon approach={answer.approach} />
                     <div>
-                        {answer.approach != Approaches.GPTDirect && 
+                        {answer.approach != Approaches.GPTDirect &&
                             <IconButton
                                 style={{ color: "black" }}
                                 iconProps={{ iconName: "Lightbulb" }}
@@ -97,16 +132,16 @@ export const Answer = ({
                         <ShieldCheckmark20Regular></ShieldCheckmark20Regular>Your personal and company data are protected
                     </div>
                 }
-                { answer.answer && <div className={answer.approach == Approaches.GPTDirect ? styles.answerTextUngrounded : styles.answerText}><ReactMarkdown children={parsedAnswer.answerHtml} rehypePlugins={[rehypeRaw, rehypeSanitize]}></ReactMarkdown></div> }
-                {!answer.answer && <CharacterStreamer 
-                    classNames={answer.approach == Approaches.GPTDirect ? styles.answerTextUngrounded : styles.answerText} 
-                    approach={answer.approach} 
-                    readableStream={answerStream} 
-                    setAnswer={setAnswer} 
-                    onStreamingComplete={() => {}} 
-                    typingSpeed={10} 
+                {answer.answer && <div className={answer.approach == Approaches.GPTDirect ? styles.answerTextUngrounded : styles.answerText}><ReactMarkdown children={parsedAnswer.answerHtml} rehypePlugins={[rehypeRaw, rehypeSanitize]}></ReactMarkdown></div>}
+                {!answer.answer && <CharacterStreamer
+                    classNames={answer.approach == Approaches.GPTDirect ? styles.answerTextUngrounded : styles.answerText}
+                    approach={answer.approach}
+                    readableStream={answerStream}
+                    setAnswer={setAnswer}
+                    onStreamingComplete={() => { }}
+                    typingSpeed={10}
                     setError={setError}
-                    /> }
+                />}
             </Stack.Item>
 
             {(parsedAnswer.approach == Approaches.ChatWebRetrieveRead && !!parsedAnswer.web_citations.length) && (
@@ -116,29 +151,21 @@ export const Answer = ({
                         {parsedAnswer.web_citations.map((x, i) => {
                             const path = getCitationFilePath(x);
                             return (
-                                <a key={i} className={styles.citationWeb} 
-                                title={x} href={x} target="_blank" rel="noopener noreferrer">
-                                {`${++i}. ${x}`}
+                                <a key={i} className={styles.citationWeb}
+                                    title={x} href={x} target="_blank" rel="noopener noreferrer">
+                                    {`${++i}. ${x}`}
                                 </a>
                             );
                         })}
                     </Stack>
                 </Stack.Item>
-                
+
             )}
             {(parsedAnswer.approach == Approaches.ReadRetrieveRead && !!parsedAnswer.work_citations.length) && (
                 <Stack.Item>
-                    <Stack horizontal wrap tokens={{ childrenGap: 5 }}>
+                    <Stack tokens={{ childrenGap: 5 }}>
                         <span className={styles.citationLearnMore}>Citations:</span>
-                        {parsedAnswer.work_citations.map((x, i) => {
-                            const path = getCitationFilePath(x);
-                            return ( 
-                                 <a key={i} className={styles.citationWork} 
-                                 title={x} onClick={() => onCitationClicked(path, (parsedAnswer.work_sourceFiles as any)[x], (parsedAnswer.pageNumbers as any)[x])}>
-                                 {`${++i}. ${x}`}
-                                </a>
-                            );
-                        })}
+                        <RenderWorkCitations citations={parsedAnswer.work_citations} />
                     </Stack>
                 </Stack.Item>
             )}
@@ -150,9 +177,9 @@ export const Answer = ({
                             {parsedAnswer.web_citations.map((x, i) => {
                                 const path = getCitationFilePath(x);
                                 return (
-                                    <a key={i} className={styles.citationWeb} 
-                                    title={x} href={x} target="_blank" rel="noopener noreferrer">
-                                    {`${++i}. ${x}`}
+                                    <a key={i} className={styles.citationWeb}
+                                        title={x} href={x} target="_blank" rel="noopener noreferrer">
+                                        {`${++i}. ${x}`}
                                     </a>
                                 );
                             })}
@@ -160,17 +187,9 @@ export const Answer = ({
                     </Stack.Item>
                     <div style={{ width: "100%", margin: "10px 0" }}></div>
                     <Stack.Item>
-                        <Stack horizontal wrap tokens={{ childrenGap: 5 }}>
+                        <Stack tokens={{ childrenGap: 5 }}>
                             <span className={styles.citationLearnMore}>Work Citations:</span>
-                            {parsedAnswer.work_citations.map((x, i) => {
-                                const path = getCitationFilePath(x);
-                                return ( 
-                                    <a key={i} className={styles.citationWork} 
-                                    title={x} onClick={() => onCitationClicked(path, (parsedAnswer.work_sourceFiles as any)[x], (parsedAnswer.pageNumbers as any)[x])}>
-                                    {`${++i}. ${x}`}
-                                    </a>
-                                );
-                            })}
+                            <RenderWorkCitations citations={parsedAnswer.work_citations} />
                         </Stack>
                     </Stack.Item>
                 </div>
@@ -180,15 +199,7 @@ export const Answer = ({
                     <Stack.Item>
                         <Stack horizontal wrap tokens={{ childrenGap: 5 }}>
                             <span className={styles.citationLearnMore}>Work Citations:</span>
-                            {parsedAnswer.work_citations.map((x, i) => {
-                                const path = getCitationFilePath(x);
-                                return ( 
-                                    <a key={i} className={styles.citationWork} 
-                                    title={x} onClick={() => onCitationClicked(path, (parsedAnswer.work_sourceFiles as any)[x], (parsedAnswer.pageNumbers as any)[x])}>
-                                    {`${++i}. ${x}`}
-                                    </a>
-                                );
-                            })}
+                            <RenderWorkCitations citations={parsedAnswer.work_citations} />
                         </Stack>
                     </Stack.Item>
                     <Stack.Item>
@@ -197,9 +208,9 @@ export const Answer = ({
                             {parsedAnswer.web_citations.map((x, i) => {
                                 const path = getCitationFilePath(x);
                                 return (
-                                    <a key={i} className={styles.citationWeb} 
-                                    title={x} href={x} target="_blank" rel="noopener noreferrer">
-                                    {`${++i}. ${x}`}
+                                    <a key={i} className={styles.citationWeb}
+                                        title={x} href={x} target="_blank" rel="noopener noreferrer">
+                                        {`${++i}. ${x}`}
                                     </a>
                                 );
                             })}
@@ -207,7 +218,7 @@ export const Answer = ({
                     </Stack.Item>
                 </div>
             )}
-            
+
             {!!parsedAnswer.followupQuestions.length && showFollowupQuestions && onFollowupQuestionClicked && (
                 <Stack.Item>
                     <Stack horizontal wrap className={`${!!parsedAnswer.work_citations.length ? styles.followupQuestionsList : !!parsedAnswer.web_citations.length ? styles.followupQuestionsList : ""}`} tokens={{ childrenGap: 6 }}>

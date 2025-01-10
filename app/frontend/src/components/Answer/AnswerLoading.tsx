@@ -21,7 +21,7 @@ export const AnswerLoading: React.FC<AnswerLoadingProps> = ({ approach }) => {
     return (
         <animated.div style={{ ...animatedStyles }}>
             <Stack className={approach == Approaches.GPTDirect ? styles.answerContainerUngrounded : styles.answerContainer} verticalAlign="space-between">
-                {/* <AnswerIcon approach={approach}/> */}
+                <AnswerIcon approach={approach}/>
                 <Stack.Item grow>
                     <p className={approach == Approaches.GPTDirect ? styles.answerTextUngrounded : styles.answerText}>
                         Generating answer

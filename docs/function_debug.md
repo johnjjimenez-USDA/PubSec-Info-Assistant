@@ -18,6 +18,7 @@ Next you will need to create local configuration values that are used by the fun
   "Values": {
     "BLOB_STORAGE_ACCOUNT_UPLOAD_CONTAINER_NAME": "<YOUR AZURE VALUE>",
     "BLOB_STORAGE_ACCOUNT_LOG_CONTAINER_NAME": "logs",
+    "BLOB_STORAGE_ACCOUNT_CONFIG_CONTAINER_NAME":"config",
     "COSMOSDB_LOG_CONTAINER_NAME": "statuscontainer",
     "COSMOSDB_LOG_DATABASE_NAME": "statusdb",
     "COSMOSDB_URL": "<YOUR AZURE VALUE>",

@@ -6,6 +6,7 @@ import os
 import json
 import random
 import time
+from shared_code.cosmos_document import CosmosDocument
 from shared_code.status_log import StatusLog, State, StatusClassification
 import azure.functions as func
 from azure.storage.blob import BlobServiceClient
@@ -35,6 +36,8 @@ azure_search_service_index = os.environ["AZURE_SEARCH_INDEX"]
 local_debug = os.environ["LOCAL_DEBUG"]
 azure_ai_credential_domain = os.environ["AZURE_AI_CREDENTIAL_DOMAIN"]
 azure_openai_authority_host = os.environ["AZURE_OPENAI_AUTHORITY_HOST"]
+cosmosdb_metadata_database_name = os.environ["COSMOSDB_METADATA_DATABASE_NAME"]
+cosmosdb_metadata_container_name = os.environ["COSMOSDB_METADATA_CONTAINER_NAME"]
 
 if azure_openai_authority_host == "AzureUSGovernment":
     AUTHORITY = AzureAuthorityHosts.AZURE_GOVERNMENT
@@ -59,6 +62,8 @@ utilities_helper = UtilitiesHelper(
     credential=azure_credential
 )
 statusLog = StatusLog(cosmosdb_url, azure_credential, cosmosdb_log_database_name, cosmosdb_log_container_name)
+cosmos_metadata = CosmosDocument(cosmosdb_url, azure_credential,
+                      cosmosdb_metadata_database_name, cosmosdb_metadata_container_name)
 
 def get_tags_and_upload_to_cosmos(blob_service_client, blob_path):
     """ Gets the tags from the blob metadata and uploads them to cosmos db"""
@@ -77,6 +82,45 @@ def get_tags_and_upload_to_cosmos(blob_service_client, blob_path):
     # Write the tags to cosmos db
     statusLog.update_document_tags(blob_path, tags_list)
     return tags_list
+
+def update_document_metdata(blob_service_client, blob_path):
+    path_parts = blob_path.split('/')
+    document_path = '/'.join(path_parts[1:])
+    metadata = cosmos_metadata.get_document(document_path)
+    exclusion_keys = ["id","file_name"]
+    blob_client = blob_service_client.get_blob_client(blob=document_path)
+    
+    metadata = {key: str(value) for key, value in metadata.items() if value is not None and key not in exclusion_keys and not key.startswith("_")}
+    # Get the existing metadata
+    existing_metadata = blob_client.get_blob_properties().metadata
+
+    # Update the existing metadata with new metadata (this preserves old keys and values)
+    updated_metadata = existing_metadata.copy()  # Copy the existing metadata
+    updated_metadata.update(metadata)        # Update with new metadata
+    blob_client.set_blob_metadata(updated_metadata)
+    
+def get_metadata_and_upload_to_cosmos(blob_path):
+    """ Gets the metdata from the cosmos metadata and uploads them to cosmos status db"""
+    path_parts = blob_path.split('/')
+    document_path = '/'.join(path_parts[1:])
+    document = cosmos_metadata.get_document(document_path)
+    authors = document['authors'] if 'authors' in document else ''
+    if authors != '' and authors is not None:
+        if isinstance(authors, str):
+            authors_list = [unquote(author.strip()) for author in authors.split(";")]
+        else:
+            authors_list = [unquote(author.strip()) for author in authors]
+    else:
+        authors_list = []
+        
+    # Write the authors to cosmos db
+    statusLog.update_document_authors(blob_path, authors_list)
+    
+    if "year" in document and document['year'] is not None:
+        statusLog.update_document_year(blob_path, document['year'])
+        
+    return document
+
 
 
 def main(myblob: func.InputStream):
@@ -170,6 +214,8 @@ def main(myblob: func.InputStream):
         blob_service_client = BlobServiceClient(azure_blob_endpoint, credential=azure_credential)
         upload_container_client = blob_service_client.get_container_client(azure_blob_upload_container)
         get_tags_and_upload_to_cosmos(upload_container_client, myblob.name)
+        #update_document_metdata(upload_container_client, myblob.name)
+        get_metadata_and_upload_to_cosmos(myblob.name)
         
         # Queue message with a random backoff so as not to put the next function under unnecessary load
         queue_client = QueueClient(account_url=azure_queue_endpoint,

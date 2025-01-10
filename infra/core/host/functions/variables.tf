@@ -128,6 +128,16 @@ variable "CosmosDBLogContainerName" {
   type        = string
 }
 
+variable "CosmosDBMetadataDatabaseName" {
+  description = "CosmosDB Metadata Database Name"
+  type        = string
+}
+
+variable "CosmosDBMetadataContainerName" {
+  description = "CosmosDB Metadata Container Name"
+  type        = string
+}
+
 variable "pdfSubmitQueue" {
   description = "Name of the submit queue for PDF files"
   type        = string

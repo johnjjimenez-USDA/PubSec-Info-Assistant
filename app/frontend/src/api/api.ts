@@ -17,6 +17,8 @@ import { ChatResponse,
     GetFeatureFlagsResponse,
     getMaxCSVFileSizeType,
     FetchCitationFileResponse,
+    GetAuthorsResponse,
+    GetYearsResponse,
     } from "./models";
 
 export async function chatApi(options: ChatRequest, signal: AbortSignal): Promise<Response> {
@@ -45,7 +47,9 @@ export async function chatApi(options: ChatRequest, signal: AbortSignal): Promis
                 response_length: options.overrides?.responseLength,
                 response_temp: options.overrides?.responseTemp,
                 selected_folders: options.overrides?.selectedFolders,
-                selected_tags: options.overrides?.selectedTags
+                selected_tags: options.overrides?.selectedTags,
+                selected_authors: options.overrides?.selectedAuthors,
+                selected_years: options.overrides?.selectedYears
             },
             citation_lookup: options.citation_lookup,
             thought_chain: options.thought_chain
@@ -74,7 +78,9 @@ export async function getAllUploadStatus(options: GetUploadStatusRequest): Promi
             timeframe: options.timeframe,
             state: options.state as string,
             folder: options.folder as string,
-            tag: options.tag as string
+            tag: options.tag as string,
+            author: options.author as string,
+            year: options.year as string
             })
         });
     
@@ -453,6 +459,41 @@ export async function getAllTags(): Promise<GetTagsResponse> {
         throw Error(parsedResponse.error || "Unknown error");
     }
     var results: GetTagsResponse = {tags: parsedResponse};
+    return results;
+}
+
+
+export async function getAllAuthors(): Promise<GetAuthorsResponse> {
+    const response = await fetch("/getallauthors", {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json"
+        }
+    });
+
+    const parsedResponse: any = await response.json();
+    if (response.status > 299 || !response.ok) {
+        console.log(response);
+        throw Error(parsedResponse.error || "Unknown error");
+    }
+    var results: GetAuthorsResponse = {authors: parsedResponse};
+    return results;
+}
+
+export async function getAllYears(): Promise<GetYearsResponse> {
+    const response = await fetch("/getallyears", {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json"
+        }
+    });
+
+    const parsedResponse: any = await response.json();
+    if (response.status > 299 || !response.ok) {
+        console.log(response);
+        throw Error(parsedResponse.error || "Unknown error");
+    }
+    var results: GetYearsResponse = {years: parsedResponse};
     return results;
 }
 

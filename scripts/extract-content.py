@@ -167,7 +167,7 @@ new_cosmosdb_url = f'https://infoasst-cosmos-{new_random_text}.documents.azure.c
 new_azure_blob_storage_account = f"infoasststore{new_random_text}"
 new_azure_blob_storage_endpoint = get_storage_account_endpoint(new_azure_blob_storage_account)
 
-index_name = 'vector-index'
+index_name = 'vector-index-v2'
 
 old_search_client = SearchClient(endpoint=old_search_endpoint, index_name=index_name, credential=credential)
 new_search_client = SearchClient(endpoint=new_search_endpoint, index_name=index_name, credential=credential)
@@ -216,6 +216,7 @@ if skip_search_index == False:
                     index_chunk['file_name'] = result['file_name']
                     index_chunk['file_uri'] = new_file_uri
                     index_chunk['folder'] = result['folder']
+                    index_chunk['citation'] = result['citation']
                     index_chunk['tags'] = result['tags']
                     index_chunk['chunk_file'] = result['chunk_file']
                     index_chunk['file_class'] = result['file_class']

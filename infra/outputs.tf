@@ -44,7 +44,7 @@ output "RESOURCE_GROUP_NAME" {
 }
 
 output "AZURE_OPENAI_CHAT_GPT_DEPLOYMENT" {
-  value = var.chatGptDeploymentName != "" ? var.chatGptDeploymentName : var.chatGptModelName != "" ? var.chatGptModelName : "gpt-35-turbo-16k"
+  value = var.chatGptDeploymentName != "" ? var.chatGptDeploymentName : var.chatGptModelName != "" ? var.chatGptModelName : "gpt-4o"
 }
 
 output "AZURE_OPENAI_RESOURCE_GROUP" {
@@ -65,6 +65,14 @@ output "AZURE_COSMOSDB_LOG_DATABASE_NAME" {
 
 output "AZURE_COSMOSDB_LOG_CONTAINER_NAME" {
   value = module.cosmosdb.CosmosDBLogContainerName
+}
+
+output "AZURE_COSMOSDB_METADATA_DATABASE_NAME" {
+  value = module.cosmosdb.CosmosDBMetadataDatabaseName
+}
+
+output "AZURE_COSMOSDB_METADATA_CONTAINER_NAME" {
+  value = module.cosmosdb.CosmosDBMetadataContainerName
 }
 
 output "AZURE_FORM_RECOGNIZER_ENDPOINT" {

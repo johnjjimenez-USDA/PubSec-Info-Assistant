@@ -116,7 +116,9 @@ class StatusLog:
                        state: State = State.ALL,
                        folder_path: str = 'All',
                        tag: str = 'All',
-                       container: str = 'upload'
+                       container: str = 'upload',
+                       author: str = 'All',
+                       year: str = 'All'
                        ):
         """ 
         Function to issue a query and return resulting docs          
@@ -144,6 +146,12 @@ class StatusLog:
         #********************************************************
         if tag != "All":
             conditions.append(f"ARRAY_CONTAINS(c.tags, '{tag}')")
+        
+        if author != "All":
+            conditions.append(f"ARRAY_CONTAINS(c.authors, '{author}')")
+        
+        if year != "All":
+            conditions.append(f"c.year='{year}'")
             
         path_prefix = container + '/'
         if folder_path == 'Root':
@@ -285,6 +293,34 @@ class StatusLog:
 
         except Exception as err:
             logging.error("An error occurred while updating the document state: %s", str(err))
+    
+    def update_document_authors(self, document_path, authors_list):
+        """ Upserts document tags into the database """
+        try:       
+            document_id = self.encode_document_id(document_path)
+             # retrieve the stored document from cosmos
+            base_name = os.path.basename(document_path)
+            json_document = self.container.read_item(item=document_id, partition_key=base_name)
+            json_document['authors'] = authors_list
+            self._log_document[document_id] = json_document
+            self.save_document(document_path)
+
+        except Exception as err:
+            logging.error("An error occurred while updating the document state: %s", str(err))
+    
+    def update_document_year(self, document_path, year):
+        """ Upserts document tags into the database """
+        try:       
+            document_id = self.encode_document_id(document_path)
+             # retrieve the stored document from cosmos
+            base_name = os.path.basename(document_path)
+            json_document = self.container.read_item(item=document_id, partition_key=base_name)
+            json_document['year'] = year
+            self._log_document[document_id] = json_document
+            self.save_document(document_path)
+
+        except Exception as err:
+            logging.error("An error occurred while updating the document state: %s", str(err))
 
     def save_document(self, document_path):
         """Saves the document in the storage"""
@@ -313,6 +349,17 @@ class StatusLog:
         query = "SELECT DISTINCT VALUE t FROM c JOIN t IN c.tags"
         tag_array = self.container.query_items(query=query, enable_cross_partition_query=True)
         return ",".join(tag_array)
+    
+    def get_all_authors(self):
+        """ Returns all authors in the database """
+        query = "SELECT DISTINCT VALUE t FROM c JOIN t IN c.authors"
+        author_array = self.container.query_items(query=query, enable_cross_partition_query=True) 
+        return [str(item) for item in author_array]
+    
+    def get_all_years(self):
+        query = "SELECT DISTINCT VALUE c.year FROM c"
+        year_array = self.container.query_items(query=query, enable_cross_partition_query=True) 
+        return [str(item) for item in year_array]
     
     def delete_doc(self, doc: str) -> None:
         '''Deletes doc for a file paths'''

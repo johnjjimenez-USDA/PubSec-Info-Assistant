@@ -68,6 +68,23 @@ resource "azurerm_cosmosdb_sql_container" "log_container" {
   partition_key_paths = ["/file_name"]
 }
 
+resource "azurerm_cosmosdb_sql_database" "metadata_database" {
+  name                = var.metadataDatabaseName
+  resource_group_name = var.resourceGroupName
+  account_name        = azurerm_cosmosdb_account.cosmosdb_account.name
+}
+
+resource "azurerm_cosmosdb_sql_container" "metadata_container" {
+  name                = var.metadataContainerName
+  resource_group_name = var.resourceGroupName
+  account_name        = azurerm_cosmosdb_account.cosmosdb_account.name
+  database_name       = azurerm_cosmosdb_sql_database.metadata_database.name
+
+  partition_key_paths = ["/file_name"]
+}
+
+
+
 data "azurerm_subnet" "subnet" {
   count                = var.is_secure_mode ? 1 : 0
   name                 = var.subnet_name

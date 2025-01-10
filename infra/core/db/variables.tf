@@ -50,6 +50,16 @@ variable "logContainerName" {
   type        = string
 }
 
+variable "metadataDatabaseName" {
+  description = "The name for the metadata database"
+  type        = string
+}
+
+variable "metadataContainerName" {
+  description = "The name for the metadata container"
+  type        = string
+}
+
 variable "autoscaleMaxThroughput" {
   description = "Maximum autoscale throughput for the container"
   type        = number

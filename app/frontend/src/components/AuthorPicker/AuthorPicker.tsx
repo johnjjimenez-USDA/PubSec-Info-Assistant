@@ -7,44 +7,44 @@ import { TooltipHost,
 import { Info16Regular } from '@fluentui/react-icons';
 import { mergeStyles } from '@fluentui/react/lib/Styling';
 import { useId } from '@fluentui/react-hooks';
-import { getAllTags } from "../../api";
+import { getAllAuthors } from "../../api";
 
-import styles from "./TagPicker.module.css";
+import styles from "./AuthorPicker.module.css";
 
 var allowAddNew = false;
 
 interface Props {
-    allowNewTags?: boolean;
-    onSelectedTagsChange: (selectedTags: ITag[]) => void;
-    preSelectedTags?: ITag[];
+    allowNewAuthors?: boolean;
+    onSelectedAuthorsChange: (selectedAuthors: ITag[]) => void;
+    preSelectedAuthors?: ITag[];
     hide?: boolean;
 }
 
-export const TagPickerInline = ({allowNewTags, onSelectedTagsChange, preSelectedTags, hide}: Props) => {
+export const AuthorPickerInline = ({allowNewAuthors, onSelectedAuthorsChange, preSelectedAuthors, hide}: Props) => {
 
-    const pickerId = useId('tag-inline-picker');
-    const tooltipId = useId('tagpicker-tooltip');
+    const pickerId = useId('author-inline-picker');
+    const tooltipId = useId('authorpicker-tooltip');
     const hostStyles: Partial<ITooltipHostStyles> = { root: { display: 'inline-block' } };
     const newItem = mergeStyles({ color: '#f00', background: '#ddf', padding: '10px' });
     const existingItem = mergeStyles({ color: '#222', padding: '10px' });
 
-    const [selectedTags, setSelectedTags] = useState<ITag[]>([]);
-    const [tags, setTags] = useState<ITag[]>([]);
+    const [selectedAuthors, setSelectedAuthors] = useState<ITag[]>([]);
+    const [authors, setAuthors] = useState<ITag[]>([]);
     const getTextFromItem = (item: ITag) => item.name;
 
-    allowAddNew = allowNewTags as boolean;
+    allowAddNew = allowNewAuthors as boolean;
 
-    const listContainsTagList = (tag: ITag, tagList?: ITag[]): boolean => {
-        if (!tagList || !tagList.length || tagList.length === 0) {
+    const listContainsAuthorList = (author: ITag, authorList?: ITag[]): boolean => {
+        if (!authorList || !authorList.length || authorList.length === 0) {
           return false;
         }
-        return tagList.some((compareTag: ITag) => compareTag.key === tag.key);
+        return authorList.some((compareAuthor: ITag) => compareAuthor.key === author.key);
       };
     
-    const filterSuggestedTags = (filterText: string, tagList: ITag[] | undefined): ITag[] => {
+    const filterSuggestedAuthors = (filterText: string, authorList: ITag[] | undefined): ITag[] => {
         var existingMatches = filterText
-        ? tags.filter(
-            tag => tag.name.toLowerCase().indexOf(filterText.toLowerCase()) === 0 && !listContainsTagList(tag, tagList),
+        ? authors.filter(
+            author => author.name.toLowerCase().indexOf(filterText.toLowerCase()) === 0 && !listContainsAuthorList(author, authorList),
           )
         : [];
     
@@ -59,12 +59,12 @@ export const TagPickerInline = ({allowNewTags, onSelectedTagsChange, preSelected
     };
     
     const onItemSelected = (item: any | undefined): ITag | PromiseLike<ITag> | null => {
-        const selected = selectedTags;
+        const selected = selectedAuthors;
         if(item && item.isNewItem) {
             item.isNewItem = false;
-            var newTags = tags;
-            newTags.push(item);
-            setTags(newTags);
+            var newAuthors = authors;
+            newAuthors.push(item);
+            setAuthors(newAuthors);
         }
         return item as ITag;
       };
@@ -84,29 +84,29 @@ export const TagPickerInline = ({allowNewTags, onSelectedTagsChange, preSelected
       };
 
     const pickerSuggestionsProps: IBasePickerSuggestionsProps = {
-      suggestionsHeaderText: 'Existing Tags',
-      noResultsFoundText: allowAddNew ? 'Press Enter to add as a new tag' : 'No matching tag found',
+      suggestionsHeaderText: 'Existing Authors',
+      noResultsFoundText: allowAddNew ? 'Press Enter to add as a new author' : 'No matching author found',
     };
 
-    async function fetchTagsfromCosmos() {
+    async function fetchAuthorsfromCosmos() {
       try {
-        const response = await getAllTags();
-        var newTags: ITag[] = [];
-        response.tags.split(",").forEach((tag: string) => {
-          const trimmedTag = tag.trim();
-          if (trimmedTag !== "" && !newTags.some(t => t.key === trimmedTag)) {
-            const newTag: any = { key: trimmedTag, name: trimmedTag, isNewItem: false };
-            newTags.push(newTag);
+        const response = await getAllAuthors();
+        var newAuthors: ITag[] = [];
+        response.authors.forEach((author: string) => {
+          const trimmedAuthor = author.trim();
+          if (trimmedAuthor !== "" && !newAuthors.some(t => t.key === trimmedAuthor)) {
+            const newAuthor: any = { key: trimmedAuthor, name: trimmedAuthor, isNewItem: false };
+            newAuthors.push(newAuthor);
           }
         });
-        setTags(newTags);
-        if (preSelectedTags !== undefined && preSelectedTags.length > 0) {
-          setSelectedTags(preSelectedTags);
-          onSelectedTagsChange(preSelectedTags);
+        setAuthors(newAuthors);
+        if (preSelectedAuthors !== undefined && preSelectedAuthors.length > 0) {
+          setSelectedAuthors(preSelectedAuthors);
+          onSelectedAuthorsChange(preSelectedAuthors);
         }
         else {
-          setSelectedTags([]);
-          onSelectedTagsChange([]);
+          setSelectedAuthors([]);
+          onSelectedAuthorsChange([]);
         }
       }
       catch (error) {
@@ -116,29 +116,29 @@ export const TagPickerInline = ({allowNewTags, onSelectedTagsChange, preSelected
 
     const onChange = (items?: ITag[] | undefined) => {
       if (items) {
-        setSelectedTags(items);
-        onSelectedTagsChange(items);
+        setSelectedAuthors(items);
+        onSelectedAuthorsChange(items);
       }
     };
 
     useEffect(() => {
-      fetchTagsfromCosmos();
+      fetchAuthorsfromCosmos();
   }, []);
     
     return (
-      <div  className={hide? styles.hide : styles.tagArea}>
-        <div className={styles.tagSelection}>
+      <div  className={hide? styles.hide : styles.authorArea}>
+        <div className={styles.authorSelection}>
           <div className={allowAddNew ? styles.rootClass : styles.rootClassFilter}>
-            <label htmlFor={pickerId}><>Tags</> <TooltipHost content={allowAddNew ? "Tags to append to each document uploaded below." : "Tags to filter documents by."}
+            <label htmlFor={pickerId}><>Authors</> <TooltipHost content={allowAddNew ? "Authors to append to each document uploaded below." : "Authors to filter documents by."}
                     styles={hostStyles}
                     id={tooltipId}>
             <Info16Regular></Info16Regular>
           </TooltipHost></label>
             <TagPicker
-                className={styles.tagPicker}
+                className={styles.authorPicker}
                 removeButtonAriaLabel="Remove"
-                selectionAriaLabel="Existing tags"
-                onResolveSuggestions={filterSuggestedTags}
+                selectionAriaLabel="Existing authors"
+                onResolveSuggestions={filterSuggestedAuthors}
                 onRenderSuggestionsItem={onRenderSuggestionsItem}
                 getTextFromItem={getTextFromItem}
                 pickerSuggestionsProps={pickerSuggestionsProps}
@@ -149,7 +149,7 @@ export const TagPickerInline = ({allowNewTags, onSelectedTagsChange, preSelected
                     id: pickerId
                 }}
                 onItemSelected={onItemSelected}
-                selectedItems={selectedTags}
+                selectedItems={selectedAuthors}
                 onChange={onChange}
             />
           </div>

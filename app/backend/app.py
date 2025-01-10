@@ -57,7 +57,7 @@ ENV = {
     "AZURE_OPENAI_RESOURCE_GROUP": "",
     "AZURE_OPENAI_ENDPOINT": "",
     "AZURE_OPENAI_AUTHORITY_HOST": "AzureCloud",
-    "AZURE_OPENAI_CHATGPT_DEPLOYMENT": "gpt-35-turbo-16k",
+    "AZURE_OPENAI_CHATGPT_DEPLOYMENT": "gpt-4o",
     "AZURE_OPENAI_CHATGPT_MODEL_NAME": "",
     "AZURE_OPENAI_CHATGPT_MODEL_VERSION": "",
     "USE_AZURE_OPENAI_EMBEDDINGS": "false",
@@ -358,32 +358,16 @@ async def get_all_upload_status(request: Request):
     state = json_body.get("state")
     folder = json_body.get("folder")
     tag = json_body.get("tag")
+    author = json_body.get("author")
+    year = json_body.get("year")
     try:
         results = statusLog.read_files_status_by_timeframe(timeframe,
             State[state],
             folder,
             tag,
-            os.environ["AZURE_BLOB_STORAGE_UPLOAD_CONTAINER"])
-
-        # retrieve tags for each file
-         # Initialize an empty list to hold the tags
-        items = []
-        cosmos_client = CosmosClient(url=statusLog._url,
-                                     credential=azure_credential,
-                                     consistency_level='Session')
-        database = cosmos_client.get_database_client(statusLog._database_name)
-        container = database.get_container_client(statusLog._container_name)
-        query_string = "SELECT DISTINCT VALUE t FROM c JOIN t IN c.tags"
-        items = list(container.query_items(
-            query=query_string,
-            enable_cross_partition_query=True
-        ))
-
-        # Extract and split tags
-        unique_tags = set()
-        for item in items:
-            tags = item.split(',')
-            unique_tags.update(tags)
+            os.environ["AZURE_BLOB_STORAGE_UPLOAD_CONTAINER"],
+            author,
+            year)
 
     except Exception as ex:
         log.exception("Exception in /getalluploadstatus")
@@ -656,6 +640,36 @@ async def get_all_tags():
         results = statusLog.get_all_tags()
     except Exception as ex:
         log.exception("Exception in /getalltags")
+        raise HTTPException(status_code=500, detail=str(ex)) from ex
+    return results
+
+@app.get("/getallauthors")
+async def get_all_authors():
+    """
+    Get the status of all authors in the system
+
+    Returns:
+        dict: A dictionary containing the status of all authors
+    """
+    try:
+        results = statusLog.get_all_authors()
+    except Exception as ex:
+        log.exception("Exception in /getallauthors")
+        raise HTTPException(status_code=500, detail=str(ex)) from ex
+    return results
+
+@app.get("/getallyears")
+async def get_all_years():
+    """
+    Get the status of all authors in the system
+
+    Returns:
+        dict: A dictionary containing the status of all authors
+    """
+    try:
+        results = statusLog.get_all_years()
+    except Exception as ex:
+        log.exception("Exception in /getallyears")
         raise HTTPException(status_code=500, detail=str(ex)) from ex
     return results
 

@@ -57,6 +57,10 @@ jq -r --arg secrets "$secrets" '
             "path": "AZURE_BLOB_LOG_STORAGE_CONTAINER",
             "env_var": "BLOB_STORAGE_ACCOUNT_LOG_CONTAINER_NAME"
         },
+         {
+            "path": "AZURE_BLOB_CONFIG_STORAGE_CONTAINER",
+            "env_var": "BLOB_STORAGE_ACCOUNT_CONFIG_CONTAINER_NAME"
+        },
         {
             "path": "CHUNK_TARGET_SIZE",
             "env_var": "CHUNK_TARGET_SIZE"
@@ -84,6 +88,14 @@ jq -r --arg secrets "$secrets" '
         {
             "path": "AZURE_COSMOSDB_LOG_CONTAINER_NAME",
             "env_var": "COSMOSDB_LOG_CONTAINER_NAME"
+        },
+         {
+            "path": "AZURE_COSMOSDB_METADATA_DATABASE_NAME",
+            "env_var": "COSMOSDB_METADATA_DATABASE_NAME"
+        },
+        {
+            "path": "AZURE_COSMOSDB_METADATA_CONTAINER_NAME",
+            "env_var": "COSMOSDB_METADATA_CONTAINER_NAME"
         },
         {
             "path": "FUNC_STORAGE_CONNECTION_STRING__queueServiceUri",
@@ -140,6 +152,22 @@ jq -r --arg secrets "$secrets" '
         {
             "path": "AZURE_OPENAI_AUTHORITY_HOST",
             "env_var": "AZURE_OPENAI_AUTHORITY_HOST"
+        },
+         {
+            "path": "AZURE_KEYVAULT_ENDPOINT",
+            "env_var": "AZURE_KEYVAULT_ENDPOINT"
+        },
+         {
+            "path": "SHAREPOINT_ACCESS_CERTIFICATE_NAME",
+            "env_var": "SHAREPOINT_ACCESS_CERTIFICATE_NAME"
+        },
+         {
+            "path": "SHAREPOINT_SITE_TENANT_ID",
+            "env_var": "SHAREPOINT_SITE_TENANT_ID"
+        },
+         {
+            "path": "SHAREPOINT_SITE_ACCESS_CLIENT_ID",
+            "env_var": "SHAREPOINT_SITE_ACCESS_CLIENT_ID"
         }
     ] 
         as $env_vars_to_extract

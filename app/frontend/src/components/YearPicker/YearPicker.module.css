@@ -7,18 +7,18 @@
     max-width: 250px;
 }
 
-.tagPicker {
+.yearPicker {
     background-color: white;
 }
 
-.tagArea {
+.yearArea {
     /* display: flex;
     flex-direction: column;
     width: 600px; */
     padding-bottom: 20px;
 }
 
-.tagSelection {
+.yearSelection {
     display: flex;
     flex-direction: row;
     padding-bottom: 5px;

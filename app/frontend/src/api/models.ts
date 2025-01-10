@@ -35,6 +35,8 @@ export type ChatRequestOverrides = {
     responseTemp?: number;
     selectedFolders?: string;
     selectedTags?: string;
+    selectedAuthors?: string;
+    selectedYears?:string;
 };
 
 export type ChatResponse = {
@@ -43,8 +45,8 @@ export type ChatResponse = {
     data_points: string[];
     approach: Approaches;
     thought_chain: { [key: string]: string };
-    work_citation_lookup: { [key: string]: { citation: string; source_path: string; page_number: string } };
-    web_citation_lookup: { [key: string]: { citation: string; source_path: string; page_number: string } };
+    work_citation_lookup: { [key: string]: { source_folder:string, citation_content:string, citation: string; source_path: string; page_number: string } };
+    web_citation_lookup: { [key: string]: { source_folder:string, citation_content:string, citation: string; source_path: string; page_number: string } };
     error?: string;
 };
 
@@ -102,7 +104,9 @@ export type GetUploadStatusRequest = {
     timeframe: number;
     state: FileState;
     folder: string;
-    tag: string
+    tag: string;
+    author: string;
+    year: string;
 }
 
 export type DeleteItemRequest = {
@@ -206,6 +210,17 @@ export type ApplicationTitle = {
 
 export type GetTagsResponse = {
     tags: string;
+    error?: string;
+}
+
+export type GetAuthorsResponse = {
+    authors: string[];
+    error?: string;
+}
+
+
+export type GetYearsResponse = {
+    years: string[];
     error?: string;
 }
 

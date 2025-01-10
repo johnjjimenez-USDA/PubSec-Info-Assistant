@@ -7,7 +7,7 @@ import { Stack } from "@fluentui/react";
 import { DocumentsDetailList, IDocument } from "./DocumentsDetailList";
 import { ArrowClockwise24Filled } from "@fluentui/react-icons";
 import { animated, useSpring } from "@react-spring/web";
-import { getAllUploadStatus, FileUploadBasicStatus, GetUploadStatusRequest, FileState, getFolders, getTags } from "../../api";
+import { getAllUploadStatus, FileUploadBasicStatus, GetUploadStatusRequest, FileState, getFolders, getTags, getAllAuthors, getAllYears } from "../../api";
 
 import styles from "./FileStatus.module.css";
 
@@ -15,6 +15,8 @@ const dropdownTimespanStyles: Partial<IDropdownStyles> = { dropdown: { width: 15
 const dropdownFileStateStyles: Partial<IDropdownStyles> = { dropdown: { width: 200 } };
 const dropdownFolderStyles: Partial<IDropdownStyles> = { dropdown: { width: 200 } };
 const dropdownTagStyles: Partial<IDropdownStyles> = { dropdown: { width: 200 } };
+const dropdownAuthorStyles: Partial<IDropdownStyles> = { dropdown: { width: 200 } };
+const dropdownYearStyles: Partial<IDropdownStyles> = { dropdown: { width: 200 } };
 
 const dropdownTimespanOptions = [
     { key: 'Time Range', text: 'End time range', itemType: DropdownMenuItemType.Header },
@@ -51,9 +53,13 @@ export const FileStatus = ({ className }: Props) => {
     const [selectedFileStateItem, setSelectedFileStateItem] = useState<IDropdownOption>();
     const [SelectedFolderItem, setSelectedFolderItem] = useState<IDropdownOption>();
     const [SelectedTagItem, setSelectedTagItem] = useState<IDropdownOption>();
+    const [SelectedAuthorItem, setSelectedAuthorItem] = useState<IDropdownOption>();
+    const [SelectedYearItem, setSelectedYearItem] = useState<IDropdownOption>();
 
     const [folderOptions, setFolderOptions] = useState<IDropdownOption[]>([]);
     const [tagOptions, setTagOptions] = useState<IDropdownOption[]>([]);
+    const [authorOptions, setAuthorOptions] = useState<IDropdownOption[]>([]);
+    const [yearOptions, setYearOptions] = useState<IDropdownOption[]>([]);
     const [files, setFiles] = useState<IDocument[]>();
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -72,6 +78,14 @@ export const FileStatus = ({ className }: Props) => {
     const onTagChange = (event: React.FormEvent<HTMLDivElement>, item: IDropdownOption<any> | undefined): void => {
         setSelectedTagItem(item);
     };  
+
+    const onAuthorChange = (event: React.FormEvent<HTMLDivElement>, item: IDropdownOption<any> | undefined): void => {
+        setSelectedAuthorItem(item);
+    }; 
+
+    const onYearChange = (event: React.FormEvent<HTMLDivElement>, item: IDropdownOption<any> | undefined): void => {
+        setSelectedYearItem(item);
+    }; 
 
     const onFilesSorted = (items: IDocument[]): void => {
         setFiles(items);
@@ -108,7 +122,9 @@ export const FileStatus = ({ className }: Props) => {
             timeframe: timeframe,
             state: selectedFileStateItem?.key == undefined ? FileState.All : selectedFileStateItem?.key as FileState,
             folder: SelectedFolderItem?.key == undefined ? 'Root' : SelectedFolderItem?.key as string,
-            tag: SelectedTagItem?.key == undefined ? 'All' : SelectedTagItem?.key as string
+            tag: SelectedTagItem?.key == undefined ? 'All' : SelectedTagItem?.key as string,
+            author:SelectedAuthorItem?.key == undefined ? 'All' : SelectedAuthorItem?.key as string,
+            year:SelectedYearItem?.key == undefined ? 'All' : SelectedYearItem?.key as string
         }
         const response = await getAllUploadStatus(request);
         const list = convertStatusToItems(response.statuses);
@@ -143,11 +159,49 @@ export const FileStatus = ({ className }: Props) => {
     };
 
 
+    // fetch unique author names from Azure Cosmos DB
+    const fetchAuthors = async () => {
+        try {
+            const authorsResp = await getAllAuthors(); // Await the promise
+            const AllOption = { key: 'All', text: 'All' }; // Create the "ALL" option  
+            if(authorsResp.authors)  {
+            const AuthorsDropdownOptions = [AllOption, ...authorsResp.authors.map((author: string) => ({ key: author, text: author }))];
+            setAuthorOptions(AuthorsDropdownOptions);
+            }
+            else{
+                console.log(authorsResp.error)
+            }
+        }
+        catch (e) {
+            console.log(e);
+        }
+    };
+
+    // fetch unique years from Azure Cosmos DB
+    const fetchYears = async () => {
+        try {
+            const yearsResp = await getAllYears(); // Await the promise
+            const AllOption = { key: 'All', text: 'All' }; // Create the "ALL" option  
+            if(yearsResp.years)  {
+            const YearsDropdownOptions = [AllOption, ...yearsResp.years.map((year: string) => ({ key: year, text: year }))];
+            setYearOptions(YearsDropdownOptions);
+            }
+            else{
+                console.log(yearsResp.error)
+            }
+        }
+        catch (e) {
+            console.log(e);
+        }
+    };
+    
 
     // Effect to fetch folders & tags on mount
     useEffect(() => {
         fetchFolders();
-        fetchTags();        
+        fetchTags();
+        fetchYears()
+        // fetchAuthors();        
     }, []);
 
     function convertStatusToItems(fileList: FileUploadBasicStatus[]) {
@@ -236,6 +290,24 @@ export const FileStatus = ({ className }: Props) => {
                     styles={dropdownTagStyles}
                     aria-label="tag options for file statuses to be displayed"
                 />
+                <Dropdown
+                    label="Year:"
+                    defaultSelectedKey={'All'}
+                    onChange={onYearChange}
+                    placeholder="Select a year"
+                    options={yearOptions}
+                    styles={dropdownYearStyles}
+                    aria-label="year options for file statuses to be displayed"
+                />
+                {/* <Dropdown
+                    label="Author:"
+                    defaultSelectedKey={'All'}
+                    onChange={onAuthorChange}
+                    placeholder="Select a author"
+                    options={authorOptions}
+                    styles={dropdownAuthorStyles}
+                    aria-label="author options for file statuses to be displayed"
+                /> */}
             </div>
             {isLoading ? (
                 <animated.div style={{ ...animatedStyles }}>
