@@ -430,9 +430,10 @@ def poll_queue() -> None:
                 index_chunk['file_uri'] = chunk_dict["file_uri"]
                 index_chunk['folder'] = file_directory[:-1]
                 index_chunk['tags'] = tag_list
-                index_chunk['citation']= metadata["citation"] if "citation" in metadata else None
-                index_chunk['authors']= metadata["authors"].split(";") if "authors" in metadata else []
-                index_chunk['year']= metadata["year"] if "year" in metadata else None
+                if metadata is not None:
+                    index_chunk['citation']= metadata["citation"] if "citation" in metadata else None
+                    index_chunk['authors']= metadata["authors"].split(";") if "authors" in metadata else []
+                    index_chunk['year']= metadata["year"] if "year" in metadata else None
                 index_chunk['chunk_file'] = chunk.name
                 index_chunk['file_class'] = chunk_dict["file_class"]
                 index_chunk['title'] = chunk_dict["title"]

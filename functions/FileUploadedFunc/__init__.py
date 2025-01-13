@@ -104,6 +104,10 @@ def get_metadata_and_upload_to_cosmos(blob_path):
     path_parts = blob_path.split('/')
     document_path = '/'.join(path_parts[1:])
     document = cosmos_metadata.get_document(document_path)
+    
+    if document is None:
+        return
+    
     authors = document['authors'] if 'authors' in document else ''
     if authors != '' and authors is not None:
         if isinstance(authors, str):
