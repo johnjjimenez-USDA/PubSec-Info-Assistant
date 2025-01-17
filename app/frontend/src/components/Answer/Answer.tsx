@@ -72,7 +72,7 @@ export const Answer = ({
                             <ReactMarkdown components={{
                                 p: ({ children }) => <span>{children}</span>,
                             }}
-                                rehypePlugins={[rehypeRaw]}>{`${groupKeyParts[0]} ${renderToStaticMarkup(groupKeyParts[1] && groupKeyParts[1].length > 0 && <sup><Badge bg="secondary">{groupKeyParts[1].replace(/[^a-zA-Z0-9]/g, ' ').toUpperCase()}</Badge></sup>)}`}</ReactMarkdown>
+                                rehypePlugins={[rehypeRaw]}>{`${groupKeyParts[0]}`}</ReactMarkdown>
                             {
                                 groups[x].map((y, j) => {
                                     return (
