@@ -42,9 +42,9 @@ cosmos_metadata = CosmosDocument(cosmosdb_url, azure_credential,
 
 def get_metadata_and_upload_to_cosmos(grouped_data):
     for key, value in grouped_data.items():
-        if value.get('citation', None) and value.get('title', None):
-            value['citation'] = value['citation'].replace(
-                value['title'], f"_**{value['title']}**_")
+        # if value.get('citation', None) and value.get('title', None):
+        #     value['citation'] = value['citation'].replace(
+        #         value['title'], f"_**{value['title']}**_")
         cosmos_metadata.upsert_document(key, value)
 
 
